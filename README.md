@@ -4,6 +4,7 @@ RAAR
 RNA-Seq Based Alignment Artifact Removal Toolkit
 
 Content:
+
 1. There will be one separate User Manual files.
 
 2. The Codes
