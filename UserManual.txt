@@ -1,0 +1,141 @@
+=================================================
+RAAR User Manual 
+Version1.0
+=================================================
+
+SOFTWARE DEPENDENCY SETUP
+samtools setup  (needed for all three modules)
+Type “samtools” in your command line. If the information below is displayed
+
+Program: samtools (Tools for alignments in the SAM format)
+Version: 0.1.19-44428cd
+
+Usage:   samtools <command> [options]
+
+Command: view        SAM<->BAM conversion
+         sort        sort alignment file
+         mpileup     multi-way pileup
+         depth       compute the depth
+         faidx       index/extract FASTA
+…
+
+it means samtools is properly installed.  Otherwise, it can be downloaded at http://sourceforge.net/projects/samtools/files/samtools/. To install it, first unzip the downloaded distribution, then run ‘make’, and finally include the program path in the execution path:
+
+cd <destination directory>
+unzip samtools-0.1.19.tar.bz2
+cd samtools-0.1.19
+make
+chmod +x bin/*
+export $PATH=$PATH:<destination directory>/bin
+
+bedtools setup (only needed for the last module)
+Type “bedtools” in your command line. If the information below is displayed
+
+bedtools: flexible tools for genome arithmetic and DNA sequence analysis.
+usage:    bedtools <subcommand> [options]
+
+The bedtools sub-commands include:
+…
+It means bedtools is properly installed. Otherwise,  it can be downloaded  at
+http://code.google.com/p/bedtools/downloads/list. After unzipping the downloaded distribution, consult the README.rst file in the unzipped folder for detailed installation instructions.
+But again, you will need to copy the compiled bedtools into your system path.
+Blat setup (only needed for the last module)
+Type “Blat” in your command line. If the information below is displayed
+
+Blat - Standalone BLAT v. 35x1 fast sequence search command line tool
+usage:
+   Blat database query [-ooc=11.ooc] output.psl
+…
+
+it means Blat is properly installed. Otherwise, it can be downloaded at http://hgdownload.soe.ucsc.edu/admin/exe/. The proper download will depend on your system type. For example, to download the standalone version for linux 64bit, go to http://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64.v287/Blat/Blat. Once downloaded and installed (following the software’s instruction), add its path to the execution path for your system (see above). 
+
+DETAILED USER MANUAL
+=================================================
+
+General Features of the modules:
+To create better user experience, 1.) we adopt the common used vcf format to store variant information. 2.) our scripts can handle separate vcf files for each sample or a compiled vcf file for all samples. (detailed examples provided in the examples)
+The output of each module contains two files, one file ends with “vcf”, while the other one ends with “_details.VCF”. The vcf contains the “cleaned” or true positive variants after the filtering step; while the “_details.VCF” file contains the detailed information from each filtering step. 
+Parameter description for each module
+
+=================================================
+2.1 common parameter descriptions
+	-i  : input vcf file (No default value)
+	-I  : input RNA-Seq aligned bam file  (No default value)
+	-s  : suffix to search for the variant call file (default: vcf)
+	-S : suffix to search for the RNA-Seq alignment file (default: bam)
+	-a  : input path for the vcf file (default current folder)
+	-A : input path for the bam file (default current folder)
+	-O : path for the output file (default current folder)
+	-l : length of the component from filename to extract (default: 2)
+	-p : prefix of the output file (default value varies in different component) 
+	-E :mode of processing (default value 1)
+		-E 1  : handle separate vcf files for multiple samples
+		-E 2  : handle a compiled vcf files for multiple samples 
+
+=================================================
+
+2.2 Module 1 (splicing-junction artifact removal) parameter descriptions
+	Script: RNASeq_splicing_junction_filter_obj_v1.0.py
+	
+	-L : the length on both end of the read to ignore (default 6 bp) 
+	This means if the base calling supporting the variant call resides within the 6 bp on both end of the reads. These reads are considered to be false positive supporting reads for the variant calling. 
+
+	-F : the length near splice junction to ignore (default 10 bp)
+	This means if the base calling supporting the variant call resides within the 10 bp distance to the splice junction site. These reads were considered to be false positive supporting reads for the variant calling.
+
+	-m :minimum read coverage (default 8)
+
+	-X :mode of counting calls per base (default value 0)
+		-X 1  : count the bases from all reads 
+		-X 0  : only count the bases from reads passed the quality filter
+
+	-c :mode of processing (default value 0)
+		-c 0 :    only count the paired variant and bam file 
+		-c 1 : examine the variant across all the sample even if the variant is not reported in that sample.
+ 
+2.3 Module 2-1 (multiple alignments artifact removal without realignment) parameter descriptions
+	Script: RNA_multialignment_no-Blat_filter_obj_v1.0.py
+	-L : maximum abnormal frequency threshold (default 5) 
+	When the percentage of possible false positive alignment above this threshold, the variant will be considered as false positive.  
+
+	-R :relax method (default value 1) 
+		-R 0 : no relaxed method applied: This means that all samples with the same variant calls need to be true positive to be considered as a true positive. 
+		-R 1 : relaxed method applied for the compiled vcf file. This adopts more relaxed criteria to call the variants as a true positive. 
+		Note: This will only apply to the compiled vcf input. 
+
+2.4 Module 2-2 (multiple alignments artifact removal with realignment) parameter descriptions
+	Script: RNA_multialignment_w-Blat_filter_obj_v1.0.py
+	
+	-c : coding region bed reference   
+	additional script to generate this file from custom database will be provided online. 
+	Set this to be “” (blank) if no annotation is available
+
+	-r :reference genome used by Blat (fasta format)
+	
+	-P :Blat parameter (default value “-stepSize=5”)
+
+	-C : maximum non-best alignment threshold (default 50)   
+	When the percentage of non-best alignment of supporting reads above this threshold, the variant will be considered as false positive. (50 means 50%)
+
+ 
+3.	Examples
+3.1 Module 1 example:
+Example command line for one vcf paired with one bam:
+	Python RNASeq_splicing_junction_filter_obj_v1.0.py –i Gm12878_chr21_RNAediting.vcf –I /restricted/projectnb/montilab-p/personal/liye/7-Application-Notes/GM12878-test/0-raw-data/ Gm12878_RNA_combined.bam –l 1
+	
+Example command line for one compiled vcf paired with several bams:
+	Python RNASeq_splicing_junction_filter_obj_v1.0.py –i Cancer_combined_RNAediting.vcf –A /restricted/projectnb/montilab-p/personal/liye/bams/ –l 1 –E 2
+
+3.2 Module 2-1 example:
+Example command line for one vcf paired with one bam:
+	Python RNA_multialignment_no-Blat_filter_obj_v1.0.py –i Gm12878_chr21_filter-splicing.vcf –I /restricted/projectnb/montilab-p/personal/liye/7-Application-Notes/GM12878-test/0-raw-data/ Gm12878_RNA_combined.bam –l 1 
+
+Example command line for one compiled vcf paired with several bams:
+	Python RNA_multialignment_no-Blat_filter_obj_v1.0.py –i Cancer_combined_filter-splicing.vcf –I /restricted/projectnb/montilab-p/personal/liye/bams/ –l 1 –E 2
+
+3.3 Module 2-2 example:
+Example command line for one vcf paired with one bam:
+	Python RNA_multialignment_w-Blat_filter_obj_v1.0.py –i Gm12878_chr21_RBA.vcf –I /restricted/projectnb/montilab-p/personal/liye/7-Application-Notes/GM12878-test/0-raw-data/Gm12878_RNA_combined.bam –l 1
+
+Example command line for one compiled vcf paired with several bams:
+	Python RNA_multialignment_w-Blat_filter_obj_v1.0.py –i Cancer_combined_RBA.vcf –I /restricted/projectnb/montilab-p/personal/liye/bams/–l 1 –E 2
