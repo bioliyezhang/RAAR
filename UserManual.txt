@@ -5,6 +5,7 @@ Version1.0
 
 SOFTWARE DEPENDENCY SETUP
 samtools setup  (needed for all three modules)
+Most versions of samtools should work, we had tested version 0.1.18 and 0.1.19. 
 Type “samtools” in your command line. If the information below is displayed
 
 Program: samtools (Tools for alignments in the SAM format)
