@@ -12,6 +12,11 @@ Key Points:
 
 
 SOFTWARE DEPENDENCY SETUP
+
+Download scripts from GiHub  (needed for all three modules)
+1.	Go to https://github.com/bioliyezhang/RAAR
+2.	Click “Download ZIP” in the bottom Right corner to download the zipped files containing the scripts, user manual and information of example files
+
 samtools setup  (needed for all three modules)
 Most versions of samtools should work, we had tested version 0.1.18 and 0.1.19. 
 Type “samtools” in your command line. If the information below is displayed
@@ -49,7 +54,7 @@ It means bedtools is properly installed. Otherwise,  it can be downloaded  at
 http://code.google.com/p/bedtools/downloads/list. After unzipping the downloaded distribution, consult the README.rst file in the unzipped folder for detailed installation instructions.
 But again, you will need to copy the compiled bedtools into your system path.
 Blat setup (only needed for the last module)
-Type “Blat” in your command line. If the information below is displayed
+Type “blat” in your command line. If the information below is displayed
 
 Blat - Standalone BLAT v. 35x1 fast sequence search command line tool
 usage:
@@ -63,8 +68,10 @@ DETAILED USER MANUAL
 
 General Features of the modules:
 To create better user experience, 1.) we adopt the common used vcf format to store variant information. 2.) our scripts can handle separate vcf files for each sample or a compiled vcf file for all samples. (detailed examples provided in the examples)
+The three modules should be run in a sequential manner. Regarding to alignment bam files, they have to be sorted and indexed bam files.
 The output of each module contains two files, one file ends with “vcf”, while the other one ends with “_details.VCF”. The vcf contains the “cleaned” or true positive variants after the filtering step; while the “_details.VCF” file contains the detailed information from each filtering step. 
-The three modules should be run in a sequential manner. 
+
+
 
 Parameter description for each module
 =================================================
@@ -138,22 +145,25 @@ Parameter description for each module
  
 3.	Examples
 3.1 Module 1 example:
-Example command line for one vcf paired with one bam:
-	Python RNASeq_splicing_junction_filter_obj_v1.0.py –i Gm12878_chr21_RNAediting.vcf –I /restricted/projectnb/montilab-p/personal/liye/7-Application-Notes/GM12878-test/0-raw-data/ Gm12878_RNA_combined.bam –l 1
-	
+Example command line for single sample vcf paired with one bam(example files provided): 
+       Python RNASeq_splice_junction_filter_obj_v1.0.py –i Gm12878_chr21_pass.vcf –I Gm12878_RNA_chr21_sorted.bam –l 1
 Example command line for one compiled vcf paired with several bams:
-	Python RNASeq_splicing_junction_filter_obj_v1.0.py –i Cancer_combined_RNAediting.vcf –A /restricted/projectnb/montilab-p/personal/liye/bams/ –l 1 –E 2
+Python RNASeq_splice_junction_filter_obj_v1.0.py –i Cancer_combined_RNAediting.vcf –A ./bams/ –l 1 –E 2
+
+Notes: Names of Output files will be ended with *_RAA_x.vcf and *_RAA_x_details.VCF	
 
 3.2 Module 2-1 example:
-Example command line for one vcf paired with one bam:
-	Python RNA_multialignment_no-Blat_filter_obj_v1.0.py –i Gm12878_chr21_filter-splicing.vcf –I /restricted/projectnb/montilab-p/personal/liye/7-Application-Notes/GM12878-test/0-raw-data/ Gm12878_RNA_combined.bam –l 1 
+Example command line for single sample vcf paired with one bam(example files provided): 
+Python RNA_multialignment_no-Blat_filter_obj_v1.0.py –i Gm12878_RAA_6.vcf –I Gm12878_RNA_chr21_sorted.bam –l 1 
 
 Example command line for one compiled vcf paired with several bams:
-	Python RNA_multialignment_no-Blat_filter_obj_v1.0.py –i Cancer_combined_filter-splicing.vcf –I /restricted/projectnb/montilab-p/personal/liye/bams/ –l 1 –E 2
+Python RNA_multialignment_no-Blat_filter_obj_v1.0.py –i Cancer_combined_filter-splicing.vcf –I /restricted/projectnb/montilab-p/personal/liye/bams/ –l 1 –E 2
+Notes: Names of Output files will be ended with *_RBA_with_retrieve_x.vcf and *_ RBA_with_retrieve_x_details.VCF	
 
 3.3 Module 2-2 example:
-Example command line for one vcf paired with one bam:
-	Python RNA_multialignment_w-Blat_filter_obj_v1.0.py –i Gm12878_chr21_RBA.vcf –I /restricted/projectnb/montilab-p/personal/liye/7-Application-Notes/GM12878-test/0-raw-data/Gm12878_RNA_combined.bam –l 1
+Example command line for single sample vcf paired with one bam(example files provided): 
+Python RNA_multialignment_w-Blat_filter_obj_v1.0.py –i Gm12878_RBA_with_retrieve_5.vcf –I Gm12878_RNA_chr21_sorted.bam –l 1 –r hg19.fa –c Homo_sapiens.GRCh37.65.bed4
 
 Example command line for one compiled vcf paired with several bams:
-	Python RNA_multialignment_w-Blat_filter_obj_v1.0.py –i Cancer_combined_RBA.vcf –I /restricted/projectnb/montilab-p/personal/liye/bams/–l 1 –E 2
+Python RNA_multialignment_w-Blat_filter_obj_v1.0.py –i Cancer_combined_RBA.vcf –I /restricted/projectnb/montilab-p/personal/liye/bams/–l 1 –E 2 
+Notes: Names of Output files will be ended with *_RBA_final.vcf and *_ RBA_final_details.VCF	
