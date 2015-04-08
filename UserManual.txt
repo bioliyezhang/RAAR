@@ -1,12 +1,13 @@
 =================================================
 RAAR User Manual 
-Version1.0
+Version1.1
 =================================================
 Key Points:
 1. dependency on samtools/bedtools/blat
 2. three module should be run sequentially, and each step generate a vcf file(cleaned or high confident calls), 
    also each step generate a ends with “_details.VCF”, which includes details information of the analysis for each 
    variant.
+3. a wrapper function is included
    
 
 
